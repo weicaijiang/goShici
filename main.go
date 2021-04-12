@@ -1,32 +1,20 @@
 package main
 
 import (
-	"github.com/PuerkitoBio/goquery"
+	"goshici/gofish"
+	"goshici/handle"
 	"log"
-	"net/http"
 )
 
 func main() {
 	authors := "https://so.gushiwen.org/authors"
-	res, err := http.Get(authors)
+	h := handle.AuthorHandle{}
+	fish := gofish.NewGoFish()
+	request, err := gofish.NewRequest("GET", authors, gofish.UserAgent, &h, nil)
 	if err != nil {
-		panic(err)
+		log.Println(err)
+		return
 	}
-	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		log.Fatal("error status:", res.Status, " code:", res.StatusCode)
-	}
-	doc, err := goquery.NewDocumentFromReader(res.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-	doc.Find(".sons").Find(".cont").Find("a").Each(func(i int, s *goquery.Selection) {
-		author := s.Text()
-		link, exists := s.Attr("href")
-		if !exists {
-			log.Println("not exit author:", author)
-			return
-		}
-		log.Println("author:", author, " link:", link)
-	})
+	fish.Request = request
+	fish.Visit()
 }
